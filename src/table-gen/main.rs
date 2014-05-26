@@ -70,7 +70,7 @@ fn main() {
 
         for (i, dept) in dept_names.iter().enumerate() {
             let entry = [db::Integer(i as u32),
-                         db::Text(*dept)];
+                         db::Text(dept.into_owned())];
             let foo = depts.append_entry(entry.as_slice());
             foo.unwrap();
         }
@@ -89,7 +89,7 @@ fn main() {
                 let full_name = format!("{} {}", first, last);
                 let dept_id = dept_sampler.ind_sample(&mut rng);
                 let entry = [db::Integer(next_id),
-                             db::Text(full_name.as_slice()),
+                             db::Text(full_name),
                              db::Integer(dept_id as u32)];
                 clients.append_entry(entry.as_slice()).unwrap();
                 next_id += 1;

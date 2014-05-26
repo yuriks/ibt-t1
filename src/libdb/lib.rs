@@ -22,12 +22,12 @@ pub enum FieldType {
     TextType,
 }
 
-pub enum Field<'a> {
+pub enum Field {
     Integer(u32),
-    Text(&'a str),
+    Text(String),
 }
 
-impl<'a> Field<'a> {
+impl Field {
     fn get_type(&self) -> FieldType {
         match *self {
             Integer(_) => IntegerType,
@@ -36,7 +36,7 @@ impl<'a> Field<'a> {
     }
 }
 
-impl<'a> fmt::Show for Field<'a> {
+impl fmt::Show for Field {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Integer(x) => write!(fmt, "{}", x),
@@ -94,7 +94,7 @@ impl<'s, 'table> TableIterator<'table> {
         Ok(())
     }
 
-    pub fn next_record(&'s mut self, out: &mut Vec<Field<'s>>) -> bool {
+    pub fn next_record(&'s mut self, out: &mut Vec<Field>) -> bool {
         if self.i >= self.len {
             return false;
         }
@@ -165,7 +165,7 @@ impl fmt::Show for TableError {
     }
 }
 
-fn read_value<'a>(i: uint, field_type: FieldType, buf: &'a [u8]) -> Result<Field<'a>, TableError> {
+fn read_value<'a>(i: uint, field_type: FieldType, buf: &'a [u8]) -> Result<Field, TableError> {
     match field_type {
         IntegerType => {
             Ok(Integer(read_u32(buf)))
@@ -174,7 +174,7 @@ fn read_value<'a>(i: uint, field_type: FieldType, buf: &'a [u8]) -> Result<Field
             let len = buf[0] as uint;
             let s = str::from_utf8(buf.slice(1, 1 + len));
             match s {
-                Some(s) => Ok(Text(s)),
+                Some(s) => Ok(Text(s.to_strbuf())),
                 None => Err(ValueError(i)),
             }
         },
@@ -198,7 +198,7 @@ fn write_value(i: uint, value: &Field, buf: &mut [u8]) -> Result<(), TableError>
     }
 }
 
-fn read_fields<'a>(values: &mut Vec<Field<'a>>, fields: &[FieldSchema], buffer: &'a [u8])
+fn read_fields<'a>(values: &mut Vec<Field>, fields: &[FieldSchema], buffer: &'a [u8])
         -> Result<(), TableError> {
     values.clear();
     values.reserve(fields.len());
