@@ -77,7 +77,7 @@ pub struct TableIterator<'table> {
 
 static BLOCK_SIZE : uint = 10;
 
-impl<'s, 'table> TableIterator<'table> {
+impl<'table> TableIterator<'table> {
     fn load_block(&mut self, i: uint) -> io::IoResult<()> {
         let stride = self.table.schema.entry_stride;
         let load_base = (i * stride) as i64;
@@ -94,7 +94,7 @@ impl<'s, 'table> TableIterator<'table> {
         Ok(())
     }
 
-    pub fn next_record(&'s mut self, out: &mut Vec<Field>) -> bool {
+    pub fn next_record(&mut self, out: &mut Vec<Field>) -> bool {
         if self.i >= self.len {
             return false;
         }
@@ -165,7 +165,7 @@ impl fmt::Show for TableError {
     }
 }
 
-fn read_value<'a>(i: uint, field_type: FieldType, buf: &'a [u8]) -> Result<Field, TableError> {
+fn read_value(i: uint, field_type: FieldType, buf: &[u8]) -> Result<Field, TableError> {
     match field_type {
         IntegerType => {
             Ok(Integer(read_u32(buf)))
@@ -198,7 +198,7 @@ fn write_value(i: uint, value: &Field, buf: &mut [u8]) -> Result<(), TableError>
     }
 }
 
-fn read_fields<'a>(values: &mut Vec<Field>, fields: &[FieldSchema], buffer: &'a [u8])
+fn read_fields(values: &mut Vec<Field>, fields: &[FieldSchema], buffer: &[u8])
         -> Result<(), TableError> {
     values.clear();
     values.reserve(fields.len());
@@ -224,7 +224,7 @@ fn write_fields(values: &[Field], fields: &[FieldSchema], buffer: &mut [u8]) -> 
 }
 
 impl Table {
-    pub fn open<'a>(db_path: &Path, table_name: &'a str) -> Result<Table, TableOpenError> {
+    pub fn open(db_path: &Path, table_name: &str) -> Result<Table, TableOpenError> {
         let table_path = db_path.join("tables").join(table_name);
 
         let data_file = match fs::File::open_mode(
@@ -253,7 +253,7 @@ impl Table {
         }
     }
 
-    pub fn append_entry<'a>(&mut self, values: &[Field]) -> Result<(), TableError> {
+    pub fn append_entry(&mut self, values: &[Field]) -> Result<(), TableError> {
         let mut buffer = Vec::from_elem(self.schema.entry_stride, 0u8);
 
         try!(write_fields(values, self.schema.fields.as_slice(), buffer.as_mut_slice()));
