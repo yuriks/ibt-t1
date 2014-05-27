@@ -24,7 +24,7 @@ pub enum FieldType {
     TextType,
 }
 
-#[deriving(Eq)]
+#[deriving(Clone, Eq)]
 pub enum Field {
     Integer(u32),
     Text(String),
@@ -87,6 +87,10 @@ pub struct PhysicalTableIterator<'table> {
     pub records_accessed: uint,
 }
 
+pub trait RewindableIterator<T> : Iterator<T> {
+    fn rewind(&mut self);
+}
+
 pub trait TableIterator : Iterator<Vec<Field>> {
     fn blocks_accessed(&self) -> uint;
     fn records_accessed(&self) -> uint;
@@ -143,6 +147,12 @@ impl<'table> Iterator<Vec<Field>> for PhysicalTableIterator<'table> {
         self.records_accessed += 1;
 
         Some(out)
+    }
+}
+
+impl<'table> RewindableIterator<Vec<Field>> for PhysicalTableIterator<'table> {
+    fn rewind(&mut self) {
+        self.i = 0;
     }
 }
 
