@@ -26,9 +26,17 @@ fn main() {
     let mut clients = db::Table::open(&db_path, "Clientes").unwrap();
 
     print_table(&mut depts.iter());
-    print_table(&mut clients.iter());
+    //print_table(&mut clients.iter());
 
-    let cross_iter = db::select::cross(clients.iter(), depts.iter());
+    /*
+    let mut pk_iter = db::select::SelectPrimaryKey {
+        base: clients.iter(),
+        key: Some(99820),
+    };
+    print_table(&mut pk_iter);
+    */
+
+    let mut cross_iter = db::select::cross(clients.iter(), depts.iter());
     let client_id_field = cross_iter.schema().map_field("Clientes.departamento").unwrap();
     let dept_id_field = cross_iter.schema().map_field("Departamentos.id").unwrap();
     let mut select_iter = db::select::Select {
@@ -36,4 +44,15 @@ fn main() {
         condition: |record| { record.get(client_id_field) == record.get(dept_id_field) },
     };
     print_table(&mut select_iter);
+
+    /*
+    let clients_iter = clients.iter();
+    let client_id_field = clients_iter.schema().map_field("departamento").unwrap();
+    let mut pk_join_iter = db::select::pk_join(clients_iter, depts.iter(),
+        |record| { match *record.get(client_id_field) {
+            db::Integer(k) => Some(k),
+            _ => None,
+        }});
+    print_table(&mut pk_join_iter);
+    */
 }

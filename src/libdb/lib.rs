@@ -103,6 +103,14 @@ static BLOCK_SIZE : uint = 10;
 
 impl<'table> PhysicalTableIterator<'table> {
     fn load_block(&mut self, i: uint) -> io::IoResult<()> {
+        let need_reload = match self.block_base {
+            Some((base, limit)) => self.i < base || self.i >= limit,
+            None => true
+        };
+        if !need_reload {
+            return Ok(())
+        }
+
         let stride = self.table.schema.entry_stride;
         let load_base = (i * stride) as i64;
         let load_size = BLOCK_SIZE * stride;
@@ -123,37 +131,41 @@ impl<'table> PhysicalTableIterator<'table> {
 
 impl<'table> Iterator<Vec<Field>> for PhysicalTableIterator<'table> {
     fn next(&mut self) -> Option<Vec<Field>> {
-        if self.i >= self.len {
-            return None;
-        }
-
-        let stride = self.table.schema.entry_stride;
-
-        let need_reload = match self.block_base {
-            Some((base, limit)) => self.i < base || self.i >= limit,
-            None => true
-        };
-        if need_reload {
-            self.load_block(self.i).unwrap();
-        }
-
-        let (base, _) = self.block_base.unwrap();
-
-        let entry_base = (self.i - base) * stride;
-        let entry_buf = self.block_data.slice(entry_base, entry_base + stride);
-
-        let mut out = Vec::new();
-        read_fields(&mut out, self.table.schema.fields.as_slice(), entry_buf).unwrap();
+        let r = self.idx(self.i);
         self.i += 1;
-        self.records_accessed += 1;
-
-        Some(out)
+        r
     }
 }
 
 impl<'table> RewindableIterator<Vec<Field>> for PhysicalTableIterator<'table> {
     fn rewind(&mut self) {
         self.i = 0;
+    }
+}
+
+impl<'table> RandomAccessIterator<Vec<Field>> for PhysicalTableIterator<'table> {
+    fn indexable(&self) -> uint {
+        self.len
+    }
+
+    fn idx(&mut self, i: uint) -> Option<Vec<Field>> {
+        if i >= self.len {
+            return None;
+        }
+
+        let stride = self.table.schema.entry_stride;
+
+        self.load_block(i).unwrap();
+        let (base, _) = self.block_base.unwrap();
+
+        let entry_base = (i - base) * stride;
+        let entry_buf = self.block_data.slice(entry_base, entry_base + stride);
+
+        let mut out = Vec::new();
+        read_fields(&mut out, self.table.schema.fields.as_slice(), entry_buf).unwrap();
+        self.records_accessed += 1;
+
+        Some(out)
     }
 }
 

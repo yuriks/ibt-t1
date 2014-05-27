@@ -99,7 +99,8 @@ fn main() {
         "Shea", "Blosser", "Evangelina", "Hornbuckle", "Minerva", "Kolman", "Cassidy", "Hardaway",
         "Tyrone", "Varnum", "Aldo", "Thurmon", "Catherina", "Croyle", "Enoch", "Tokar", "Gala",
         "Strack", "Lucilla", "Lynch", "Delicia", "Knobel", "Lala", "Porter"];
-    let dept_names = ["Punheta", "Soneca", "Vendas"];
+    let dept_names = ["Soneca", "Vendas", "Marketing", "RH", "Desenvolvimento", "Design", "DevOps",
+        "Pesquisa", "Customer Relations", "Suporte"];
 
     {
         let mut depts = db::Table::open(&db_path, "Departamentos").unwrap();
