@@ -4,9 +4,10 @@
 extern crate core;
 extern crate serialize;
 
+use std::cmp::min;
 use std::fmt;
-use std::io;
 use std::io::fs;
+use std::io;
 use std::str;
 use core::slice::MutableCloneableVector;
 use serialize::json;
@@ -240,7 +241,7 @@ fn write_value(i: uint, value: &Field, buf: &mut [u8]) -> Result<(), TableError>
             if s.len() > 255 {
                 return Err(LengthError(i, s.len(), 255));
             }
-            buf[0] = s.len() as u8;
+            buf[0] = min(s.len(), buf.len() - 1) as u8;
             buf.mut_slice_from(1).copy_from(s.as_bytes());
             Ok(())
         },
