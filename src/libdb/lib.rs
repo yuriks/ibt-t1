@@ -16,12 +16,15 @@ use serialize::{
     Encoder
 };
 
+pub mod select;
+
 #[deriving(Decodable, Encodable, Eq, Show)]
 pub enum FieldType {
     IntegerType,
     TextType,
 }
 
+#[deriving(Eq)]
 pub enum Field {
     Integer(u32),
     Text(String),
@@ -59,6 +62,12 @@ pub struct TableSchema {
     pub name: String,
     pub fields: Vec<FieldSchema>,
     pub entry_stride: uint,
+}
+
+impl TableSchema {
+    pub fn map_field(&self, name: &str) -> Option<uint> {
+        self.fields.iter().position(|f| f.name.as_slice() == name)
+    }
 }
 
 pub struct Table {
