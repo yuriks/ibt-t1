@@ -61,8 +61,44 @@ fn main() {
 
     create_tables(&db_path);
 
-    let first_names = ["Fulano", "João", "Yuri", "Hugo"];
-    let last_names = ["da Silva", "Kunde", "Roberts"];
+    let names = [
+        "Fulano", "João", "Yuri", "Hugo", "Maria", "Sandra", "Alexandre", "Ricardo", "Ciclano",
+        "Beltrano", "Davi", "Luís", "Jacob", "da Silva", "Kunde", "Roberts", "Denny", "Eacret",
+        "Doug", "Gulbranson", "Alina", "Hargraves", "Elva", "Niblett", "Harriet", "Ornelas",
+        "Leida", "Stackhouse", "Harold", "Gibson", "Velma", "Pless", "Milford", "Lymon", "Danae",
+        "Humfeld", "Jamee", "Truesdell", "Melita", "Hunsucker", "Nieves", "Bish", "Meghan",
+        "Fritze", "Laronda", "Byrd", "Simonne", "Friel", "Jule", "Dade", "Hester", "Roesler",
+        "Shameka", "Brim", "Jefferey", "Mcneely", "Brittaney", "Mullikin", "Casandra", "Washam",
+        "Tessa", "Nordstrom", "Jennifer", "Wilmes", "Harris", "Henze", "Krystle", "Vice", "Ollie",
+        "Laird", "Colby", "Aylesworth", "Gilberto", "Colon", "Arie", "Brodt", "Esperanza", "Huskey",
+        "Tyson", "Viruet", "Letitia", "Dresser", "Jaimie", "Cupples", "Alethea", "Arline",
+        "Dorthea", "Bolinger", "Manual", "Cartee", "Fabiola", "Nolan", "Genny", "Vaughan", "Hana",
+        "Difranco", "Frederick", "Hollinger", "Louie", "Dalal", "Thaddeus", "Ptak", "Joey",
+        "Pennock", "Gregory", "Belliveau", "Peter", "Bueche", "Melonie", "Caves", "Laverne", "Yoo",
+        "Coreen", "Barmore", "Sulema", "Branton", "Torri", "Kelsey", "Denis", "Paille", "Teressa",
+        "Decosta", "Juliana", "Perrin", "Eleanora", "Atherton", "Trudy", "Mcgahey", "Zaida",
+        "Camacho", "Anamaria", "Eves", "Kate", "Tardy", "Vicenta", "Olive", "Rickie", "Drury",
+        "Kassandra", "Mulvey", "Kristle", "Street", "Nestor", "Lien", "Addie", "Keesler", "Sharan",
+        "Groat", "Lionel", "Hindle", "Nichelle", "Santamaria", "Nannette", "Austell", "Dalila",
+        "Burdick", "Reyes", "Seiber", "Orville", "Daniele", "Rigoberto", "Urman", "Armand",
+        "Powell", "Son", "Kane", "Vito", "Vila", "Martina", "Heatherly", "Jolynn", "Decoteau",
+        "Junita", "Scheck", "Sid", "Garneau", "Mildred", "Callihan", "Suzan", "Kosakowski",
+        "Christine", "Spath", "Shari", "Schaar", "Bonnie", "Luby", "Aliza", "Beckerman", "Nancie",
+        "Tavarez", "Philomena", "Knauss", "Yasmine", "Steve", "Sarita", "Terrell", "Mariela",
+        "Sack", "Jeff", "Vanderslice", "Lorri", "Clayborn", "Tatum", "Weigle", "Ettie", "Raiford",
+        "Susanne", "Whitner", "Del", "Gregorich", "Brandon", "Sapien", "Lavon", "Bump", "Margrett",
+        "Vu", "Ruthe", "Giardina", "Tracee", "Stapp", "Richelle", "Emberton", "Yuri", "Marois",
+        "Stephine", "Morphis", "Roscoe", "Poissant", "Lilly", "Wachtel", "Laure", "Genova", "Sadie",
+        "Wallach", "Rodolfo", "Merritt", "Terresa", "Steelman", "Marchelle", "Kelso", "Valery",
+        "Hagstrom", "Leda", "Peri", "Karole", "Vangorder", "Shawana", "Monaco", "Mallory",
+        "Tomasello", "Jeffie", "Mccuen", "Roseanne", "Isom", "Rheba", "Alpers", "Jessenia",
+        "Chiesa", "Gwyneth", "Mcfetridge", "Twanna", "Mckinsey", "Morris", "Tietz", "Angelo",
+        "Yung", "Janean", "Frady", "Marhta", "Begay", "Elijah", "Goncalves", "Adele", "Leno",
+        "Jannette", "Marland", "Hank", "Cypher", "Madge", "Dale", "Rosenda", "Severe", "Mariel",
+        "Kaneshiro", "Yer", "Bensinger", "Myesha", "Bogard", "Cary", "Witter", "Piedad", "August",
+        "Shea", "Blosser", "Evangelina", "Hornbuckle", "Minerva", "Kolman", "Cassidy", "Hardaway",
+        "Tyrone", "Varnum", "Aldo", "Thurmon", "Catherina", "Croyle", "Enoch", "Tokar", "Gala",
+        "Strack", "Lucilla", "Lynch", "Delicia", "Knobel", "Lala", "Porter"];
     let dept_names = ["Punheta", "Soneca", "Vendas"];
 
     {
@@ -84,8 +120,8 @@ fn main() {
 
         let mut next_id = 0;
 
-        for first in first_names.iter() {
-            for last in last_names.iter() {
+        for first in names.iter() {
+            for last in names.iter() {
                 let full_name = format!("{} {}", first, last);
                 let dept_id = dept_sampler.ind_sample(&mut rng);
                 let entry = [db::Integer(next_id),
