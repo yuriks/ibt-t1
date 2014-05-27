@@ -66,18 +66,28 @@ pub struct Table {
     pub file: fs::File,
 }
 
-pub struct TableIterator<'table> {
+pub struct PhysicalTableIterator<'table> {
     table: &'table mut Table,
     i: uint,
     len: uint,
 
     block_base: Option<(uint, uint)>,
     block_data: Vec<u8>,
+
+    pub blocks_accessed: uint,
+    pub records_accessed: uint,
+}
+
+pub trait TableIterator : Iterator<Vec<Field>> {
+    fn blocks_accessed(&self) -> uint;
+    fn records_accessed(&self) -> uint;
+
+    fn schema<'s>(&'s self) -> &'s TableSchema;
 }
 
 static BLOCK_SIZE : uint = 10;
 
-impl<'table> TableIterator<'table> {
+impl<'table> PhysicalTableIterator<'table> {
     fn load_block(&mut self, i: uint) -> io::IoResult<()> {
         let stride = self.table.schema.entry_stride;
         let load_base = (i * stride) as i64;
@@ -91,12 +101,16 @@ impl<'table> TableIterator<'table> {
         assert!(records_loaded >= 1);
         self.block_base = Some((i, i + records_loaded));
 
+        self.blocks_accessed += 1;
+
         Ok(())
     }
+}
 
-    pub fn next_record(&mut self, out: &mut Vec<Field>) -> bool {
+impl<'table> Iterator<Vec<Field>> for PhysicalTableIterator<'table> {
+    fn next(&mut self) -> Option<Vec<Field>> {
         if self.i >= self.len {
-            return false;
+            return None;
         }
 
         let stride = self.table.schema.entry_stride;
@@ -114,10 +128,26 @@ impl<'table> TableIterator<'table> {
         let entry_base = (self.i - base) * stride;
         let entry_buf = self.block_data.slice(entry_base, entry_base + stride);
 
-        read_fields(out, self.table.schema.fields.as_slice(), entry_buf).unwrap();
+        let mut out = Vec::new();
+        read_fields(&mut out, self.table.schema.fields.as_slice(), entry_buf).unwrap();
         self.i += 1;
+        self.records_accessed += 1;
 
-        true
+        Some(out)
+    }
+}
+
+impl<'table> TableIterator for PhysicalTableIterator<'table> {
+    fn blocks_accessed(&self) -> uint {
+        self.blocks_accessed
+    }
+
+    fn records_accessed(&self) -> uint {
+        self.records_accessed
+    }
+
+    fn schema<'s>(&'s self) -> &'s TableSchema {
+        &self.table.schema
     }
 }
 
@@ -241,15 +271,18 @@ impl Table {
         Ok(Table { schema: schema, file: data_file })
     }
 
-    pub fn iter<'s>(&'s mut self) -> TableIterator<'s> {
+    pub fn iter<'s>(&'s mut self) -> PhysicalTableIterator<'s> {
         let num_entries = self.file.stat().unwrap().size / self.schema.entry_stride as u64;
-        TableIterator {
+        PhysicalTableIterator {
             table: self,
             i: 0,
             len: num_entries as uint,
 
             block_base: None,
             block_data: Vec::new(),
+
+            blocks_accessed: 0,
+            records_accessed: 0,
         }
     }
 
